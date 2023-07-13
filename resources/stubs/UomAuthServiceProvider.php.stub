@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+use UoMosul\UomIdPackageLaravel\Http\Controllers\AuthController;
+
 class UomAuthServiceProvider extends ServiceProvider
 {
 
@@ -65,7 +67,7 @@ class UomAuthServiceProvider extends ServiceProvider
 
 
     /**
-     * Define the Sanctum routes.
+     * Define the UOM ID Auth routes.
      *
      * @return void
      */
@@ -78,76 +80,9 @@ class UomAuthServiceProvider extends ServiceProvider
         Route::group(['prefix' => 'auth'], function () {
             // ALL ROUTES UNDER THE GROUP ARE PREFIXED WITH "/auth"
 
-            Route::get('@me', function (Request $request) {
-                return $request->user() ?? (object) [];
-            });
-
-
-            Route::get('login', function (Request $request, FrontendApi $frontendApi) {
-                try {
-                    $frontendApi->createBrowserLoginFlow(null, null, route(config('uom-id.auth.uom.redirects.login')), $request->header('Cookie'));
-
-                    $loginUrl = $request::create(config('uom-id.auth.uom.routes.login'))->fullUrlWithQuery([
-                        'return_to' => route(config('uom-id.auth.uom.redirects.login')),
-                    ]);
-
-                    return redirect($loginUrl);
-                } catch (\Ory\Kratos\Client\ApiException $err) {
-                    $errorBody = json_decode($err->getResponseBody());
-
-                    // Handle null error body
-                    if (is_null($errorBody)) {
-                        if (App::hasDebugModeEnabled()) {
-                            return response()->json(['message' => $err->getMessage()]);
-                        } else {
-                            return $this->genericJsonErrorResponse();
-                        }
-                    }
-
-                    $errorId = $errorBody->error->id;
-
-                    // TODO: Complete handling all errorId cases
-                    switch ($errorId) {
-                        case 'session_already_available':
-                            return redirect(route(config('uom-id.auth.uom.redirects.login')));
-                        default:
-                            return $this->genericJsonErrorResponse();
-                    }
-                }
-            })->name('login');
-
-
-            Route::get('logout', function (Request $request, FrontendApi $frontendApi) {
-                try {
-                    $response = $frontendApi->createBrowserLogoutFlow($request->header('Cookie'));
-                    $logoutUrl = $request::create($response['logoutUrl'])->fullUrlWithQuery([
-                        'return_to' => route(config('uom-id.auth.uom.redirects.logout')),
-                    ]);
-
-                    return redirect($logoutUrl);
-                } catch (\Ory\Kratos\Client\ApiException $err) {
-                    $errorBody = json_decode($err->getResponseBody());
-
-                    // Handle null error body
-                    if (is_null($errorBody)) {
-                        if (App::hasDebugModeEnabled()) {
-                            return response()->json(['message' => $err->getMessage()]);
-                        } else {
-                            return $this->genericJsonErrorResponse();
-                        }
-                    }
-
-                    // TODO: Use errorId as you wish
-                    $errorId = $errorBody->error->id;
-
-                    return redirect(route(config('uom-id.auth.uom.redirects.logout')));
-                }
-            })->name('logout');
+            Route::get('@me', AuthController::class . '@current_user');
+            Route::get('login', AuthController::class . '@login')->name('login');
+            Route::get('logout', AuthController::class . '@logout')->name('logout');
         });
-    }
-
-    private function genericJsonErrorResponse()
-    {
-        return response()->json(['message' => 'An unknown error has occurred, please contact the server administrator.']);
     }
 }
