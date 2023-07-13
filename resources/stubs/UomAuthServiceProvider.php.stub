@@ -16,15 +16,24 @@ class UomAuthServiceProvider extends ServiceProvider
 {
 
     /**
+     * Method for Getting Kratos' Config
+     */
+    private static function getOryKratosConfig()
+    {
+        $config = new \Ory\Kratos\Client\Configuration;
+        $config->setHost(config('uom-id.auth.uom.routes.host'));
+
+        return $config;
+    }
+
+    /**
      * Register services.
      */
     public function register(): void
     {
         $this->app->singleton(FrontendApi::class, function (Application $app) {
-            $config = new \Ory\Kratos\Client\Configuration;
-            $config->setHost(config('uom-id.auth.uom.routes.host'));
 
-            $frontendApi = new FrontendApi(null, $config);
+            $frontendApi = new FrontendApi(null, $this->getOryKratosConfig());
 
             return $frontendApi;
         });
@@ -37,11 +46,7 @@ class UomAuthServiceProvider extends ServiceProvider
     {
         // Define custom guard for Ory Kratos instance (https://laravel.com/docs/10.x/authentication#adding-custom-guards, https://laravel.com/docs/10.x/authentication#closure-request-guards)
         Auth::viaRequest('uom', function (Request $request) {
-            // TODO: Deduplicate this with the singleton in register method
-            $config = new \Ory\Kratos\Client\Configuration;
-            $config->setHost(config('uom-id.auth.uom.routes.host'));
-
-            $frontendApi = new FrontendApi(null, $config);
+            $frontendApi = new FrontendApi(null, $this->getOryKratosConfig());
 
             try {
                 // Get current user session
