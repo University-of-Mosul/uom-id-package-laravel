@@ -59,7 +59,7 @@ protected $except = [
 ```
 'providers' => ServiceProvider::defaultProviders()->merge([
     // ...
-    App\Providers\uomAuthServiceProvider::class
+    App\Providers\UomAuthServiceProvider::class
 ])->toArray(),
 ```
 
