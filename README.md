@@ -24,7 +24,7 @@ php artisan vendor:publish --tag="uom-id-package-laravel-config"
 You can publish the provider file with:
 
 ```bash
-php artisan vendor:publish --tag="uom-id-package-laravel-config"
+php artisan vendor:publish --tag="uom-id-package-laravel-provider"
 ```
 
 ## Usage
