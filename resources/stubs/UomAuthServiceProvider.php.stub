@@ -85,10 +85,10 @@ class UomAuthServiceProvider extends ServiceProvider
 
             Route::get('login', function (Request $request, FrontendApi $frontendApi) {
                 try {
-                    $frontendApi->createBrowserLoginFlow(null, null, route('home'), $request->header('Cookie'));
+                    $frontendApi->createBrowserLoginFlow(null, null, route(config('uom-id.auth.uom.redirects.login')), $request->header('Cookie'));
 
                     $loginUrl = $request::create(config('uom-id.auth.uom.routes.login'))->fullUrlWithQuery([
-                        'return_to' => route('home'),
+                        'return_to' => route(config('uom-id.auth.uom.redirects.login')),
                     ]);
 
                     return redirect($loginUrl);
@@ -109,7 +109,7 @@ class UomAuthServiceProvider extends ServiceProvider
                     // TODO: Complete handling all errorId cases
                     switch ($errorId) {
                         case 'session_already_available':
-                            return redirect(route('home'));
+                            return redirect(route(config('uom-id.auth.uom.redirects.login')));
                         default:
                             return $this->genericJsonErrorResponse();
                     }
@@ -121,7 +121,7 @@ class UomAuthServiceProvider extends ServiceProvider
                 try {
                     $response = $frontendApi->createBrowserLogoutFlow($request->header('Cookie'));
                     $logoutUrl = $request::create($response['logoutUrl'])->fullUrlWithQuery([
-                        'return_to' => route('home'),
+                        'return_to' => route(config('uom-id.auth.uom.redirects.logout')),
                     ]);
 
                     return redirect($logoutUrl);
@@ -140,7 +140,7 @@ class UomAuthServiceProvider extends ServiceProvider
                     // TODO: Use errorId as you wish
                     $errorId = $errorBody->error->id;
 
-                    return redirect(route('home'));
+                    return redirect(route(config('uom-id.auth.uom.redirects.logout')));
                 }
             })->name('logout');
         });

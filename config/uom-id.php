@@ -16,6 +16,11 @@ return [
                 'host' => env('UOM_ID_HOST'),
                 'login' => env('UOM_ID_LOGIN_URL'),
             ],
+            'redirects' => [
+                // The following should be route names defined in your laravel code (e.g. "home")
+                'login' => 'home',
+                'logout' => 'home',
+            ],
         ],
     ],
 ];
