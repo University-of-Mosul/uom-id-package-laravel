@@ -16,10 +16,12 @@ class AuthController
     public function login(Request $request, FrontendApi $frontendApi)
     {
         try {
-            $frontendApi->createBrowserLoginFlow(null, null, route(config('uom-id.auth.uom.redirects.login')), $request->header('Cookie'));
+            $returnToUrl = route(config('uom-id.auth.uom.redirects.login'));
+
+            $frontendApi->createBrowserLoginFlow(null, null, $returnToUrl, $request->header('Cookie'));
 
             $loginUrl = $request::create(config('uom-id.auth.uom.routes.login'))->fullUrlWithQuery([
-                'return_to' => route(config('uom-id.auth.uom.redirects.login')),
+                'return_to' => $returnToUrl,
             ]);
 
             return redirect($loginUrl);
@@ -41,6 +43,8 @@ class AuthController
             switch ($errorId) {
                 case 'session_already_available':
                     return redirect(route(config('uom-id.auth.uom.redirects.login')));
+                case 'self_service_flow_return_to_forbidden':
+                    return response()->json(['message' => "The supplied return_to address ($returnToUrl) is not allowed."]);
                 default:
                     return $this->genericJsonErrorResponse();
             }
