@@ -8,35 +8,6 @@ use Ory\Kratos\Client\Api\FrontendApi;
 
 class AuthController
 {
-    /**
-     * Get Current User from Ory Kratos
-     */
-    public function index(Request $request)
-    {
-        // TODO: Move configuration logic somewhere else?
-        $config = new \Ory\Kratos\Client\Configuration;
-        $config->setHost(config('uom-id.auth.uom.routes.host'));
-
-        $frontendApi = new FrontendApi(null, $config);
-
-        try {
-            // Get current user session
-            $session = $frontendApi->toSession(null, $request->header('Cookie'));
-            $identity = $session->getIdentity()->getTraits();
-
-            $user = ['id' => $session->getIdentity()->getId(), 'name' => $identity->name, 'email' => $identity->email];
-
-            return (object) $user;
-        } catch (\Ory\Kratos\Client\ApiException $err) {
-            // Not authenticated
-            if ($err->getCode() !== 401) {
-                throw $err;
-            }
-
-            return null;
-        }
-    }
-
     public function current_user(Request $request)
     {
         return $request->user() ?? (object) [];
