@@ -21,10 +21,10 @@ class UomIdPackageLaravelServiceProvider extends PackageServiceProvider
          */
         $package
             ->name('uom-id-package-laravel')
-                ->hasConfigFile();
-            // ->hasViews()
-            // ->hasMigration('create_uom-id-package-laravel_table')
-            // ->hasCommand(UomIdPackageLaravelCommand::class);
+            ->hasConfigFile();
+        // ->hasViews()
+        // ->hasMigration('create_uom-id-package-laravel_table')
+        // ->hasCommand(UomIdPackageLaravelCommand::class);
     }
 
     /**
