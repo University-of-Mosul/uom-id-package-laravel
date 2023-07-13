@@ -21,10 +21,61 @@ You can publish the config file with:
 php artisan vendor:publish --tag="uom-id-package-laravel-config"
 ```
 
+You can publish the provider file with:
+
+```bash
+php artisan vendor:publish --tag="uom-id-package-laravel-config"
+```
 
 ## Usage
 
-TODO
+- Define the following
+
+```
+// .env
+
+# UOM ID
+UOM_ID_HOST=http://172.22.0.10:4433
+UOM_ID_LOGIN_URL=http://127.0.0.1:4455/login
+SESSION_COOKIE=UOM_ID_META
+```
+
+- Add `UOM_ID_SESSION` to `$except` array
+
+```
+protected $except = [
+    'UOM_ID_SESSION',
+];
+```
+
+- Change `driver` to `uom`
+
+```
+'driver' => 'uom'
+```
+
+- Register service provider
+
+```
+'providers' => ServiceProvider::defaultProviders()->merge([
+    // ...
+    App\Providers\uomAuthServiceProvider::class
+])->toArray(),
+```
+
+- Link to UOM ID network through docker
+
+```
+services:
+    laravel.test:
+        networks:
+            - uom_id_intranet
+
+networks:
+    uom_id_intranet:
+        name: uom_id_intranet
+        external: true
+```
 
 ## Changelog
 
