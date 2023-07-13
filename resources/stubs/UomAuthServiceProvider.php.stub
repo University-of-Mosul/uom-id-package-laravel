@@ -27,13 +27,24 @@ class UomAuthServiceProvider extends ServiceProvider
     }
 
     /**
+     * Method for Getting Kratos' Frontend API Client
+     */
+    private static function getFrontendApiClient()
+    {
+        $frontendApi = new FrontendApi(null, UomAuthServiceProvider::getOryKratosConfig());
+
+        return $frontendApi;
+    }
+
+    /**
      * Register services.
      */
     public function register(): void
     {
+        // Register singleton for Frontend API Client
         $this->app->singleton(FrontendApi::class, function (Application $app) {
-
-            $frontendApi = new FrontendApi(null, $this->getOryKratosConfig());
+            // Initialize API Client
+            $frontendApi = $this->getFrontendApiClient();
 
             return $frontendApi;
         });
@@ -46,7 +57,7 @@ class UomAuthServiceProvider extends ServiceProvider
     {
         // Define custom guard for Ory Kratos instance (https://laravel.com/docs/10.x/authentication#adding-custom-guards, https://laravel.com/docs/10.x/authentication#closure-request-guards)
         Auth::viaRequest('uom', function (Request $request) {
-            $frontendApi = new FrontendApi(null, $this->getOryKratosConfig());
+            $frontendApi = $this->getFrontendApiClient();
 
             try {
                 // Get current user session
