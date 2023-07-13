@@ -6,6 +6,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 use Ory\Kratos\Client\Api\FrontendApi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -50,6 +51,10 @@ class UomAuthServiceProvider extends ServiceProvider
                 return (object) $user;
             } catch (\Ory\Kratos\Client\ApiException $err) {
                 // Not authenticated
+                if ($err->getCode() !== 401) {
+                    throw $err;
+                }
+
                 return null;
             }
         });
@@ -88,11 +93,25 @@ class UomAuthServiceProvider extends ServiceProvider
 
                     return redirect($loginUrl);
                 } catch (\Ory\Kratos\Client\ApiException $err) {
-                    $errorId = json_decode($err->getResponseBody())->error->id;
+                    $errorBody = json_decode($err->getResponseBody());
+
+                    // Handle null error body
+                    if (is_null($errorBody)) {
+                        if (App::hasDebugModeEnabled()) {
+                            return response()->json(['message' => $err->getMessage()]);
+                        } else {
+                            return $this->genericJsonErrorResponse();
+                        }
+                    }
+
+                    $errorId = $errorBody->error->id;
+
                     // TODO: Complete handling all errorId cases
                     switch ($errorId) {
                         case 'session_already_available':
                             return redirect(route('home'));
+                        default:
+                            return $this->genericJsonErrorResponse();
                     }
                 }
             })->name('login');
@@ -107,11 +126,28 @@ class UomAuthServiceProvider extends ServiceProvider
 
                     return redirect($logoutUrl);
                 } catch (\Ory\Kratos\Client\ApiException $err) {
-                    $errorId = json_decode($err->getResponseBody())->error->id;
+                    $errorBody = json_decode($err->getResponseBody());
+
+                    // Handle null error body
+                    if (is_null($errorBody)) {
+                        if (App::hasDebugModeEnabled()) {
+                            return response()->json(['message' => $err->getMessage()]);
+                        } else {
+                            return $this->genericJsonErrorResponse();
+                        }
+                    }
+
                     // TODO: Use errorId as you wish
+                    $errorId = $errorBody->error->id;
+
                     return redirect(route('home'));
                 }
             })->name('logout');
         });
+    }
+
+    private function genericJsonErrorResponse()
+    {
+        return response()->json(['message' => 'An unknown error has occurred, please contact the server administrator.']);
     }
 }
