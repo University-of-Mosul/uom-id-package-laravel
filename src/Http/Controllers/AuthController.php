@@ -14,7 +14,7 @@ class AuthController
     public function login(Request $request)
     {
         $returnToUrl = route(config('uom-id.auth.uom.redirects.login'));
-        $loginRouteUrl =  config('uom-id.auth.uom.routes.login');
+        $loginRouteUrl = config('uom-id.auth.uom.routes.login');
 
         $loginUrl = $request::create($loginRouteUrl)->fullUrlWithQuery([
             'return_to' => $returnToUrl,
