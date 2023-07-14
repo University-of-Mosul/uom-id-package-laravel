@@ -26,7 +26,7 @@ class AuthController
     public function logout(Request $request)
     {
         $returnToUrl = route(config('uom-id.auth.uom.redirects.login'));
-        $logoutRouteUrl =  config('uom-id.auth.uom.routes.logout');
+        $logoutRouteUrl = config('uom-id.auth.uom.routes.logout');
 
         $logoutUrl = $request::create($logoutRouteUrl)->fullUrlWithQuery([
             'return_to' => $returnToUrl,
