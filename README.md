@@ -37,6 +37,7 @@ php artisan vendor:publish --tag="uom-id-package-laravel-provider"
 # UOM ID
 UOM_ID_HOST=http://172.22.0.10:4433
 UOM_ID_LOGIN_URL=http://127.0.0.1:4455/login
+UOM_ID_LOGOUT_URL=http://127.0.0.1:4455/logout
 SESSION_COOKIE=UOM_ID_META
 ```
 
