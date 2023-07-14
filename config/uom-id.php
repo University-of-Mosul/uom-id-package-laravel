@@ -13,7 +13,7 @@ return [
     'auth' => [
         'uom' => [
             'routes' => [
-                'host' => env('UOM_ID_HOST'),
+                'session' => env('UOM_ID_SESSION_URL'),
                 'login' => env('UOM_ID_LOGIN_URL'),
                 'logout' => env('UOM_ID_LOGOUT_URL'),
             ],
