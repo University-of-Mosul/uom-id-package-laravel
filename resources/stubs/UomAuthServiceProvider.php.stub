@@ -2,11 +2,7 @@
 
 namespace App\Providers;
 
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
-use Ory\Kratos\Client\Api\FrontendApi;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -14,40 +10,12 @@ use UoMosul\UomIdPackageLaravel\Http\Controllers\AuthController;
 
 class UomAuthServiceProvider extends ServiceProvider
 {
-
-    /**
-     * Method for Getting Kratos' Config
-     */
-    private static function getOryKratosConfig()
-    {
-        $config = new \Ory\Kratos\Client\Configuration;
-        $config->setHost(config('uom-id.auth.uom.routes.host'));
-
-        return $config;
-    }
-
-    /**
-     * Method for Getting Kratos' Frontend API Client
-     */
-    private static function getFrontendApiClient()
-    {
-        $frontendApi = new FrontendApi(null, UomAuthServiceProvider::getOryKratosConfig());
-
-        return $frontendApi;
-    }
-
     /**
      * Register services.
      */
     public function register(): void
     {
-        // Register singleton for Frontend API Client
-        $this->app->singleton(FrontendApi::class, function (Application $app) {
-            // Initialize API Client
-            $frontendApi = $this->getFrontendApiClient();
-
-            return $frontendApi;
-        });
+        //
     }
 
     /**
@@ -56,25 +24,8 @@ class UomAuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Define custom guard for Ory Kratos instance (https://laravel.com/docs/10.x/authentication#adding-custom-guards, https://laravel.com/docs/10.x/authentication#closure-request-guards)
-        Auth::viaRequest('uom', function (Request $request) {
-            $frontendApi = $this->getFrontendApiClient();
-
-            try {
-                // Get current user session
-                $session = $frontendApi->toSession(null, $request->header('Cookie'));
-                $identity = $session->getIdentity()->getTraits();
-
-                $user = ['id' => $session->getIdentity()->getId(), 'name' => $identity->name, 'email' => $identity->email];
-
-                return (object) $user;
-            } catch (\Ory\Kratos\Client\ApiException $err) {
-                // Not authenticated
-                if ($err->getCode() !== 401) {
-                    throw $err;
-                }
-
-                return null;
-            }
+        Auth::viaRequest('uom', function () {
+            return redirect(config('uom-id.auth.uom.routes.session'));
         });
 
         // Register routes

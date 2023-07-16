@@ -3,8 +3,6 @@
 namespace UoMosul\UomIdPackageLaravel\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\App;
-use Ory\Kratos\Client\Api\FrontendApi;
 
 class AuthController
 {
@@ -13,74 +11,27 @@ class AuthController
         return $request->user() ?? (object) [];
     }
 
-    public function login(Request $request, FrontendApi $frontendApi)
+    public function login(Request $request)
     {
-        try {
-            $returnToUrl = route(config('uom-id.auth.uom.redirects.login'));
+        $returnToUrl = route(config('uom-id.auth.uom.redirects.login'));
+        $loginRouteUrl = config('uom-id.auth.uom.routes.login');
 
-            $frontendApi->createBrowserLoginFlow(null, null, $returnToUrl, $request->header('Cookie'));
+        $loginUrl = $request::create($loginRouteUrl)->fullUrlWithQuery([
+            'return_to' => $returnToUrl,
+        ]);
 
-            $loginUrl = $request::create(config('uom-id.auth.uom.routes.login'))->fullUrlWithQuery([
-                'return_to' => $returnToUrl,
-            ]);
-
-            return redirect($loginUrl);
-        } catch (\Ory\Kratos\Client\ApiException $err) {
-            $errorBody = json_decode($err->getResponseBody());
-
-            // Handle null error body
-            if (is_null($errorBody)) {
-                if (App::hasDebugModeEnabled()) {
-                    return response()->json(['message' => $err->getMessage()]);
-                } else {
-                    return $this->genericJsonErrorResponse();
-                }
-            }
-
-            $errorId = $errorBody->error->id;
-
-            // TODO: Complete handling all errorId cases
-            switch ($errorId) {
-                case 'session_already_available':
-                    return redirect(route(config('uom-id.auth.uom.redirects.login')));
-                case 'self_service_flow_return_to_forbidden':
-                    return response()->json(['message' => "The supplied return_to address ($returnToUrl) is not allowed."]);
-                default:
-                    return $this->genericJsonErrorResponse();
-            }
-        }
+        return redirect($loginUrl);
     }
 
-    public function logout(Request $request, FrontendApi $frontendApi)
+    public function logout(Request $request)
     {
-        try {
-            $response = $frontendApi->createBrowserLogoutFlow($request->header('Cookie'));
-            $logoutUrl = $request::create($response['logoutUrl'])->fullUrlWithQuery([
-                'return_to' => route(config('uom-id.auth.uom.redirects.logout')),
-            ]);
+        $returnToUrl = route(config('uom-id.auth.uom.redirects.login'));
+        $logoutRouteUrl = config('uom-id.auth.uom.routes.logout');
 
-            return redirect($logoutUrl);
-        } catch (\Ory\Kratos\Client\ApiException $err) {
-            $errorBody = json_decode($err->getResponseBody());
+        $logoutUrl = $request::create($logoutRouteUrl)->fullUrlWithQuery([
+            'return_to' => $returnToUrl,
+        ]);
 
-            // Handle null error body
-            if (is_null($errorBody)) {
-                if (App::hasDebugModeEnabled()) {
-                    return response()->json(['message' => $err->getMessage()]);
-                } else {
-                    return $this->genericJsonErrorResponse();
-                }
-            }
-
-            // TODO: Use errorId as you wish
-            $errorId = $errorBody->error->id;
-
-            return redirect(route(config('uom-id.auth.uom.redirects.logout')));
-        }
-    }
-
-    private function genericJsonErrorResponse()
-    {
-        return response()->json(['message' => 'An unknown error has occurred, please contact the server administrator.']);
+        return redirect($logoutUrl);
     }
 }
