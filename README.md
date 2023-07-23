@@ -41,7 +41,7 @@ UOM_ID_LOGOUT_URL=http://127.0.0.1:4455/logout
 SESSION_COOKIE=UOM_ID_META
 ```
 
-- Add `UOM_ID_SESSION` to `$except` array
+- Add `UOM_ID_SESSION` to `$except` array in `app/Http/Middleware/EncryptCookies.php`
 
 ```
 protected $except = [
@@ -49,13 +49,18 @@ protected $except = [
 ];
 ```
 
-- Change `driver` to `uom`
+- Change `driver` to `uom` in `config/auth.php` ()
 
 ```
-'driver' => 'uom'
+'guards' => [
+    'web' => [
+        'driver' => 'uom',
+        // ...
+    ],
+]
 ```
 
-- Register service provider
+- Register service provider in `config/app.php`
 
 ```
 'providers' => ServiceProvider::defaultProviders()->merge([
