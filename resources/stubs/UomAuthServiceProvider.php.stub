@@ -2,10 +2,12 @@
 
 namespace App\Providers;
 
+use Exception;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Http\Request;
 use UoMosul\UomIdPackageLaravel\Http\Controllers\AuthController;
 
 class UomAuthServiceProvider extends ServiceProvider
@@ -24,8 +26,17 @@ class UomAuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Define custom guard for Ory Kratos instance (https://laravel.com/docs/10.x/authentication#adding-custom-guards, https://laravel.com/docs/10.x/authentication#closure-request-guards)
-        Auth::viaRequest('uom', function () {
-            return redirect(config('uom-id.auth.uom.routes.session'));
+        Auth::viaRequest('uom', function (Request $request) {
+            try {
+                $response = Http::withHeader('Cookie', $request->header('Cookie'))->get(config('uom-id.auth.uom.routes.session'));
+
+                $user = $response->json();
+
+                return $user === [] ? null : (object) $user;
+            } catch (Exception $e) {
+                // FIXME: Handle this more thoroughly?
+                return null;
+            }
         });
 
         // Register routes
