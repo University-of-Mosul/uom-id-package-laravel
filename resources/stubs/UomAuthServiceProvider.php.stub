@@ -58,7 +58,7 @@ class UomAuthServiceProvider extends ServiceProvider
         Route::group(['prefix' => 'auth'], function () {
             // ALL ROUTES UNDER THE GROUP ARE PREFIXED WITH "/auth"
 
-            Route::get('@me', AuthController::class . '@current_user');
+            Route::get('@me', AuthController::class . '@current_user')->middleware('auth');
             Route::get('login', AuthController::class . '@login')->name('login');
             Route::get('logout', AuthController::class . '@logout')->name('logout');
         });
